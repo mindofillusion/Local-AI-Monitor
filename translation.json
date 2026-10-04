@@ -1,0 +1,50 @@
+{
+  "en": {
+    "translation": {
+      "Local AI Monitor XL": "Local AI Monitor XL",
+      "AI Runtime": "AI Runtime",
+      "Hardware Sensors": "Hardware Sensors",
+      "Server URL": "Server URL",
+      "Model Override": "Model Override",
+      "Backend Label": "Backend Label",
+      "Refresh Interval": "Refresh Interval",
+      "Graph History": "Graph History",
+      "Total VRAM (GB)": "Total VRAM (GB)",
+      "GPU Load": "GPU Load",
+      "GPU Temperature": "GPU Temperature",
+      "VRAM / Frame Buffer": "VRAM / Frame Buffer",
+      "CPU Load": "CPU Load",
+      "RAM Load": "RAM Load",
+      "1 second": "1 second",
+      "2 seconds": "2 seconds",
+      "5 seconds": "5 seconds",
+      "30 seconds": "30 seconds",
+      "60 seconds": "60 seconds",
+      "120 seconds": "120 seconds"
+    }
+  },
+  "fr": {
+    "translation": {
+      "Local AI Monitor XL": "Local AI Monitor XL",
+      "AI Runtime": "IA locale",
+      "Hardware Sensors": "Capteurs matériels",
+      "Server URL": "URL du serveur",
+      "Model Override": "Nom du modèle forcé",
+      "Backend Label": "Nom du backend",
+      "Refresh Interval": "Rafraîchissement",
+      "Graph History": "Historique du graphe",
+      "Total VRAM (GB)": "VRAM totale (Go)",
+      "GPU Load": "Charge GPU",
+      "GPU Temperature": "Température GPU",
+      "VRAM / Frame Buffer": "VRAM / Frame Buffer",
+      "CPU Load": "Charge CPU",
+      "RAM Load": "Charge RAM",
+      "1 second": "1 seconde",
+      "2 seconds": "2 secondes",
+      "5 seconds": "5 secondes",
+      "30 seconds": "30 secondes",
+      "60 seconds": "60 secondes",
+      "120 seconds": "120 secondes"
+    }
+  }
+}

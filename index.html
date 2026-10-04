@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Local AI Monitor</title>
+  <link rel="icon" type="image/svg+xml" href="resources/icon.svg" />
+  <meta name="x-icue-widget-preview" content="preview.png" />
+  <meta name="x-icue-property" content="serverUrl" data-label="tr('Server URL')" data-type="textfield" data-default="'http://127.0.0.1:18091'" />
+  <meta name="x-icue-property" content="modelOverride" data-label="tr('Model Override')" data-type="textfield" data-default="'Qwen3-Next-80B-A3B-Instruct'" />
+  <meta name="x-icue-property" content="backendLabel" data-label="tr('Backend Label')" data-type="textfield" data-default="'llama.cpp'" />
+  <meta name="x-icue-property" content="refreshSeconds" data-label="tr('Refresh Interval')" data-type="combobox" data-default="'1'" data-values="[{'key':'1','value':tr('1 second')},{'key':'2','value':tr('2 seconds')},{'key':'5','value':tr('5 seconds')}]" />
+  <meta name="x-icue-property" content="historySeconds" data-label="tr('Graph History')" data-type="combobox" data-default="'60'" data-values="[{'key':'30','value':tr('30 seconds')},{'key':'60','value':tr('60 seconds')},{'key':'120','value':tr('120 seconds')}]" />
+  <meta name="x-icue-property" content="totalVramGB" data-label="tr('Total VRAM (GB)')" data-type="textfield" data-default="'24'" />
+  <meta name="x-icue-property" content="gpuLoadSensor" data-label="tr('GPU Load')" data-type="sensors-combobox" data-default="plugins.Sensorsdataprovider.getDefaultSensorIdBlock('load', 'gpu-load')" />
+  <meta name="x-icue-property" content="gpuTempSensor" data-label="tr('GPU Temperature')" data-type="sensors-combobox" data-default="plugins.Sensorsdataprovider.getDefaultSensorIdBlock('temperature', 'gpu-temp')" />
+  <meta name="x-icue-property" content="vramLoadSensor" data-label="tr('VRAM / Frame Buffer')" data-type="sensors-combobox" data-default="plugins.Sensorsdataprovider.getDefaultSensorIdBlock('load', 'frame-buffer-load')" />
+  <meta name="x-icue-property" content="cpuLoadSensor" data-label="tr('CPU Load')" data-type="sensors-combobox" data-default="plugins.Sensorsdataprovider.getDefaultSensorIdBlock('load', 'package')" />
+  <meta name="x-icue-property" content="ramLoadSensor" data-label="tr('RAM Load')" data-type="sensors-combobox" data-default="plugins.Sensorsdataprovider.getDefaultSensorIdBlock('load', 'memory-load')" />  <script type="application/json" id="x-icue-groups">
+  [
+    {"title":"tr('AI Runtime')","properties":["serverUrl","modelOverride","backendLabel","refreshSeconds","historySeconds","totalVramGB"]},
+    {"title":"tr('Hardware Sensors')","properties":["gpuLoadSensor","gpuTempSensor","vramLoadSensor","cpuLoadSensor","ramLoadSensor"]}
+  ]
+  </script>
+  <link rel="stylesheet" href="styles/main.css" />
+  <script src="common/plugins/IcueWidgetApiWrapper.js"></script>
+  <script src="common/plugins/SimpleSensorApiWrapper.js"></script>
+  <script src="scripts/main.js"></script>
+  <script>
+    var icueEvents = {
+      onICUEInitialized: function () { if (window.localAiMonitorInit) window.localAiMonitorInit(); },
+      onDataUpdated: function () { if (window.localAiMonitorDataUpdated) window.localAiMonitorDataUpdated(); }
+    };
+    var pluginSensorsdataproviderEvents = {
+      onInitialized: function () { if (window.localAiMonitorSensorsInitialized) window.localAiMonitorSensorsInitialized(); }
+    };
+  </script>
+</head>
+<body>
+  <div id="app" class="app state-loading">
+    <header class="topbar">
+      <div class="brand"><span class="brain">◎</span><strong>AI CONSOLE</strong><span class="version-badge" id="versionBadge">v2.6.0</span></div>
+      <div class="status"><span class="status-dot"></span><span id="stateText">LOADING</span></div>
+      <div class="runtime-meta"><span>Modèle</span><b id="modelText">Local LLM</b><span>Backend</span><b id="backendText">llama.cpp</b></div>
+    </header>    <main class="views">
+      <section id="viewRuntime" class="view active" data-view="runtime">
+        <div class="runtime-grid">
+          <article class="card chart-card">
+            <div class="card-title"><span>Débit de génération</span><small>historique</small></div>
+            <div class="chart-stage">
+              <canvas id="chartCanvas"></canvas>
+              <div class="chart-empty" id="chartEmpty">
+                <strong id="chartEmptyTitle">EN ATTENTE DU BACKEND</strong>
+                <span id="chartEmptyUrl">Connexion au serveur local…</span>
+              </div>
+            </div>
+          </article>
+          <div class="quick-grid">
+            <article class="card quick"><span>Génération</span><strong><b id="genVal">—</b><small>tok/s</small></strong></article>
+            <article class="card quick"><span>Prompt</span><strong><b id="promptVal">—</b><small>tok/s</small></strong></article>
+            <article class="card quick"><span>Requêtes actives</span><strong><b id="reqVal">0</b></strong></article>
+            <article class="card quick"><span>File d’attente</span><strong><b id="queueVal">0</b></strong></article>
+          </div>
+        </div>
+        <div class="metrics-grid">
+          <article class="card metric-card"><span>GPU</span><strong><b id="gpuVal">—</b><small>%</small></strong></article>
+          <article class="card metric-card"><span>VRAM</span><strong><b id="vramVal">—</b></strong></article>
+          <article class="card metric-card"><span>KV cache</span><strong><b id="ctxVal">—</b><small>%</small></strong></article>
+          <article class="card metric-card"><span>GPU Temp</span><strong><b id="tempVal">—</b><small>°C</small></strong></article>
+          <article class="card metric-card"><span>CPU</span><strong><b id="cpuVal">—</b><small>%</small></strong></article>
+          <article class="card metric-card"><span>RAM</span><strong><b id="ramVal">—</b><small>%</small></strong></article>
+          <article class="card metric-card error-card"><span>Erreurs</span><strong><b id="errVal">0</b></strong></article>
+        </div>
+      </section>      <section id="viewHardware" class="view" data-view="hardware">
+        <div class="section-heading"><strong>HARDWARE</strong><span id="sensorStatus">Capteurs iCUE · connexion…</span></div>
+        <div class="hardware-grid">
+          <article class="card hw"><span>GPU</span><strong id="hwGpu">—</strong></article>
+          <article class="card hw"><span>VRAM</span><strong id="hwVram">—</strong></article>
+          <article class="card hw"><span>GPU TEMP</span><strong id="hwTemp">—</strong></article>
+          <article class="card hw"><span>CPU</span><strong id="hwCpu">—</strong></article>
+          <article class="card hw"><span>RAM</span><strong id="hwRam">—</strong></article>
+          <article class="card hw"><span>CONTEXT</span><strong id="hwCtx">—</strong></article>
+        </div>
+      </section>
+      <section id="viewErrors" class="view" data-view="errors">
+        <div class="section-heading"><strong>ERRORS</strong><span>État du backend</span></div>
+        <article class="card error-state">
+          <strong id="errorState">HEALTH OK</strong>
+          <p id="errorText">Aucune erreur détectée.</p>
+        </article>
+      </section>
+    </main>
+    <nav class="tabs" aria-label="Navigation">
+      <button class="tab active" type="button" data-tab="runtime">⌁ <span>Runtime</span></button>
+      <button class="tab" type="button" data-tab="hardware">▣ <span>Hardware</span></button>
+      <button class="tab" type="button" data-tab="errors">△ <span>Errors</span></button>
+    </nav>
+  </div>
+</body>
+</html>

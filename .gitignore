@@ -1,0 +1,14 @@
+# Build outputs
+*.icuewidget
+*.zip
+
+# Browser profiles and visual-test artefacts
+tests/edge-profile-*/
+tests/screenshots/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
