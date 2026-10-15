@@ -60,8 +60,9 @@ global.requestAnimationFrame = (callback) => callback();
 global.iCUE_initialized = true;
 global.fetch = async (url) => {
   if (url.endsWith('/health')) return new Response('{"status":"ok"}', { status: 200 });
+  if (url.endsWith('/widget/metrics')) return new Response('{"gpu":{"totalMiB":24564,"usedMiB":22357,"freeMiB":1782,"utilizationPct":7,"temperatureC":40}}', { status: 200 });
   if (url.endsWith('/metrics')) return new Response('llamacpp:predicted_tokens_seconds 51.2\nllamacpp:prompt_tokens_seconds 437.7\n', { status: 200 });
-  if (url.endsWith('/slots')) return new Response('[]', { status: 200 });
+  if (url.endsWith('/slots')) return new Response('[{"n_ctx":49152,"n_prompt_tokens":17181,"is_processing":false}]', { status: 200 });
   if (url.endsWith('/props')) return new Response('{"model":"smoke.gguf"}', { status: 200 });
   return new Response('', { status: 404 });
 };
@@ -100,16 +101,20 @@ for (const relative of ['common/plugins/IcueWidgetApiWrapper.js', 'common/plugin
 
 setTimeout(() => {
   try {
-    assert.equal(elements.versionBadge.textContent, 'v2.6.0');
-    assert.equal(elements.tempVal.textContent, '64');
-    assert.equal(elements.hwTemp.textContent, '64 °C');
-    assert.equal(elements.gpuVal.textContent, '37');
+    assert.equal(elements.versionBadge.textContent, 'v2.9.0');
+    const manifest = JSON.parse(fs.readFileSync(path.join(sourceRoot, 'manifest.json'), 'utf8'));
+    assert.equal(manifest.interactive, false, 'page swipes require a non-interactive dashboard widget');
+    assert.equal(elements.tempVal.textContent, '40');
+    assert.equal(elements.hwTemp.textContent, '40 °C');
+    assert.equal(elements.gpuVal.textContent, '7');
     assert.equal(elements.cpuVal.textContent, '18');
     assert.equal(elements.ramVal.textContent, '42');
-    assert.equal(elements.vramVal.textContent, '12.0 / 24 GB');
-    assert.match(elements.sensorStatus.textContent, /GPU temperature active/);
+    assert.equal(elements.vramVal.textContent, '21.8/24.0');
+    assert.equal(elements.hwVram.textContent, '21.8/24.0 GiB · 1.7 libre');
+    assert.equal(elements.ctxVal.textContent, '35');
+    assert.match(elements.sensorStatus.textContent, /nvidia-smi/);
     assert.equal(asyncConnections, 1, 'the Sensors plugin must only be wrapped once');
-    console.log('PASS runtime smoke: GPU temperature and hardware metrics are populated');
+    console.log('PASS runtime smoke: NVIDIA VRAM and context metrics are semantically correct');
     process.exit(0);
   } catch (error) {
     console.error(error);

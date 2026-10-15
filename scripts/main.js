@@ -3,13 +3,13 @@
 
   const $ = (id) => document.getElementById(id);
   const history = [];
-  const APP_VERSION = '2.6.0';
+  const APP_VERSION = '2.9.0';
   let sensorApi = null;
   let sensorPlugin = null;
   let sensorDiscoveryPromise = null;
   let timer = null;
   let initialized = false;
-  const discoveredSensors = { gpu:null, temp:null, vram:null, cpu:null, ram:null };
+  const discoveredSensors = { gpu:null, temp:null, cpu:null, ram:null };
 
   function prop(name, fallback) {
     try {
@@ -31,6 +31,10 @@
 
   function serverBase() {
     return String(prop('serverUrl', 'http://127.0.0.1:18091')).trim().replace(/\/+$/, '');
+  }
+
+  function monitorBase() {
+    return String(prop('monitorUrl', 'http://127.0.0.1:4171')).trim().replace(/\/+$/, '');
   }
 
   function fit() {
@@ -56,6 +60,19 @@
     let data = null;
     try { data = JSON.parse(result.text); } catch (_) {}
     return Object.assign({}, result, { data });
+  }
+
+  async function fetchAbsoluteJson(url, timeoutMs) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs || 2000);
+    try {
+      const response = await fetch(url, { cache:'no-store', signal:controller.signal });
+      let data = null;
+      try { data = JSON.parse(await response.text()); } catch (_) {}
+      return { ok:response.ok, status:response.status, data };
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   function parsePrometheus(text) {
@@ -228,12 +245,6 @@
       if (utilization && gpuDevice && /\bgpu\b/.test(name)) return 90;
       return 0;
     }
-    if (key === 'vram') {
-      if (/frame.?buffer.?load/.test(kind)) return 100;
-      if (utilization && gpuDevice && /frame.?buffer|dedicated memory|vram|video memory/.test(name + ' ' + kind)) return 90;
-      if (utilization && gpuDevice && /\bmemory\b/.test(name)) return 70;
-      return 0;
-    }
     if (key === 'cpu') {
       if (/utili[sz]ation.?cpu.?package|cpu.?load/.test(kind)) return 100;
       if (utilization && /processor|cpu|ryzen|threadripper/.test(device) && /processor|package|total/.test(name)) return 90;
@@ -268,7 +279,7 @@
       if (!ids.length) throw new Error('aucun capteur publié par iCUE');
 
       const best = {
-        gpu:{ score:0, id:null }, temp:{ score:0, id:null }, vram:{ score:0, id:null },
+        gpu:{ score:0, id:null }, temp:{ score:0, id:null },
         cpu:{ score:0, id:null }, ram:{ score:0, id:null }
       };
       let nextIndex = 0;
@@ -320,11 +331,10 @@
     const values = await Promise.all([
       readSensor('gpuLoadSensor','gpu'),
       readSensor('gpuTempSensor','temp'),
-      readSensor('vramLoadSensor','vram'),
       readSensor('cpuLoadSensor','cpu'),
       readSensor('ramLoadSensor','ram')
     ]);
-    const gpu = values[0], temp = values[1], vram = values[2], cpu = values[3], ram = values[4];
+    const gpu = values[0], temp = values[1], cpu = values[2], ram = values[3];
     metric('gpuVal', gpu); metric('tempVal', temp); metric('cpuVal', cpu); metric('ramVal', ram);
     $('hwGpu').textContent = gpu == null ? '—' : Math.round(gpu) + ' %';
     $('hwTemp').textContent = temp == null ? '—' : Math.round(temp) + ' °C';
@@ -332,15 +342,40 @@
     $('hwRam').textContent = ram == null ? '—' : Math.round(ram) + ' %';
     if (temp !== null) setSensorStatus('Capteurs iCUE · GPU temperature active');
 
-    const total = Number(prop('totalVramGB', '24')) || 24;
-    if (vram == null) {
+  }
+
+  async function updateMonitor() {
+    try {
+      const response = await fetchAbsoluteJson(monitorBase() + '/widget/metrics', 1800);
+      const gpu = response.ok && response.data ? response.data.gpu : null;
+      if (!gpu || !Number.isFinite(Number(gpu.totalMiB)) || !Number.isFinite(Number(gpu.usedMiB))) {
+        throw new Error('mesures NVIDIA indisponibles');
+      }
+
+      const totalGiB = Number(gpu.totalMiB) / 1024;
+      const usedGiB = Number(gpu.usedMiB) / 1024;
+      const freeGiB = Number(gpu.freeMiB) / 1024;
+      const compactLabel = usedGiB.toFixed(1) + '/' + totalGiB.toFixed(1);
+      $('vramVal').textContent = compactLabel;
+      $('hwVram').textContent = compactLabel + ' GiB · ' + freeGiB.toFixed(1) + ' libre';
+
+      const utilization = number(gpu.utilizationPct);
+      const temperature = number(gpu.temperatureC);
+      if (utilization !== null) {
+        metric('gpuVal', utilization);
+        $('hwGpu').textContent = Math.round(utilization) + ' %';
+      }
+      if (temperature !== null) {
+        metric('tempVal', temperature);
+        $('hwTemp').textContent = Math.round(temperature) + ' °C';
+      }
+      setSensorStatus('NVIDIA · VRAM allouée mesurée par nvidia-smi');
+      return true;
+    } catch (_) {
       $('vramVal').textContent = '—';
       $('hwVram').textContent = '—';
-    } else {
-      const used = total * vram / 100;
-      const label = used.toFixed(1) + ' / ' + total + ' GB';
-      $('vramVal').textContent = label;
-      $('hwVram').textContent = label;
+      setSensorStatus('VRAM exacte indisponible · GPU et température via iCUE');
+      return false;
     }
   }
 
@@ -412,6 +447,7 @@
 
   async function tick() {
     await Promise.allSettled([updateRuntime(), updateHardware()]);
+    await updateMonitor();
   }
 
   function schedule() {

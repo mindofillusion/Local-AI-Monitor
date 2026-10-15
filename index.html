@@ -7,19 +7,18 @@
   <link rel="icon" type="image/svg+xml" href="resources/icon.svg" />
   <meta name="x-icue-widget-preview" content="preview.png" />
   <meta name="x-icue-property" content="serverUrl" data-label="tr('Server URL')" data-type="textfield" data-default="'http://127.0.0.1:18091'" />
+  <meta name="x-icue-property" content="monitorUrl" data-label="tr('Monitor URL')" data-type="textfield" data-default="'http://127.0.0.1:4171'" />
   <meta name="x-icue-property" content="modelOverride" data-label="tr('Model Override')" data-type="textfield" data-default="'Qwen3-Next-80B-A3B-Instruct'" />
   <meta name="x-icue-property" content="backendLabel" data-label="tr('Backend Label')" data-type="textfield" data-default="'llama.cpp'" />
   <meta name="x-icue-property" content="refreshSeconds" data-label="tr('Refresh Interval')" data-type="combobox" data-default="'1'" data-values="[{'key':'1','value':tr('1 second')},{'key':'2','value':tr('2 seconds')},{'key':'5','value':tr('5 seconds')}]" />
   <meta name="x-icue-property" content="historySeconds" data-label="tr('Graph History')" data-type="combobox" data-default="'60'" data-values="[{'key':'30','value':tr('30 seconds')},{'key':'60','value':tr('60 seconds')},{'key':'120','value':tr('120 seconds')}]" />
-  <meta name="x-icue-property" content="totalVramGB" data-label="tr('Total VRAM (GB)')" data-type="textfield" data-default="'24'" />
   <meta name="x-icue-property" content="gpuLoadSensor" data-label="tr('GPU Load')" data-type="sensors-combobox" data-default="plugins.Sensorsdataprovider.getDefaultSensorIdBlock('load', 'gpu-load')" />
   <meta name="x-icue-property" content="gpuTempSensor" data-label="tr('GPU Temperature')" data-type="sensors-combobox" data-default="plugins.Sensorsdataprovider.getDefaultSensorIdBlock('temperature', 'gpu-temp')" />
-  <meta name="x-icue-property" content="vramLoadSensor" data-label="tr('VRAM / Frame Buffer')" data-type="sensors-combobox" data-default="plugins.Sensorsdataprovider.getDefaultSensorIdBlock('load', 'frame-buffer-load')" />
   <meta name="x-icue-property" content="cpuLoadSensor" data-label="tr('CPU Load')" data-type="sensors-combobox" data-default="plugins.Sensorsdataprovider.getDefaultSensorIdBlock('load', 'package')" />
   <meta name="x-icue-property" content="ramLoadSensor" data-label="tr('RAM Load')" data-type="sensors-combobox" data-default="plugins.Sensorsdataprovider.getDefaultSensorIdBlock('load', 'memory-load')" />  <script type="application/json" id="x-icue-groups">
   [
-    {"title":"tr('AI Runtime')","properties":["serverUrl","modelOverride","backendLabel","refreshSeconds","historySeconds","totalVramGB"]},
-    {"title":"tr('Hardware Sensors')","properties":["gpuLoadSensor","gpuTempSensor","vramLoadSensor","cpuLoadSensor","ramLoadSensor"]}
+    {"title":"tr('AI Runtime')","properties":["serverUrl","monitorUrl","modelOverride","backendLabel","refreshSeconds","historySeconds"]},
+    {"title":"tr('Hardware Sensors')","properties":["gpuLoadSensor","gpuTempSensor","cpuLoadSensor","ramLoadSensor"]}
   ]
   </script>
   <link rel="stylesheet" href="styles/main.css" />
@@ -39,7 +38,7 @@
 <body>
   <div id="app" class="app state-loading">
     <header class="topbar">
-      <div class="brand"><span class="brain">◎</span><strong>AI CONSOLE</strong><span class="version-badge" id="versionBadge">v2.6.0</span></div>
+      <div class="brand"><span class="brain">◎</span><strong>AI CONSOLE</strong><span class="version-badge" id="versionBadge">v2.9.0</span></div>
       <div class="status"><span class="status-dot"></span><span id="stateText">LOADING</span></div>
       <div class="runtime-meta"><span>Modèle</span><b id="modelText">Local LLM</b><span>Backend</span><b id="backendText">llama.cpp</b></div>
     </header>    <main class="views">
@@ -64,8 +63,8 @@
         </div>
         <div class="metrics-grid">
           <article class="card metric-card"><span>GPU</span><strong><b id="gpuVal">—</b><small>%</small></strong></article>
-          <article class="card metric-card"><span>VRAM</span><strong><b id="vramVal">—</b></strong></article>
-          <article class="card metric-card"><span>KV cache</span><strong><b id="ctxVal">—</b><small>%</small></strong></article>
+          <article class="card metric-card"><span>VRAM</span><strong><b id="vramVal">—</b><small>GiB</small></strong></article>
+          <article class="card metric-card"><span>Contexte</span><strong><b id="ctxVal">—</b><small>%</small></strong></article>
           <article class="card metric-card"><span>GPU Temp</span><strong><b id="tempVal">—</b><small>°C</small></strong></article>
           <article class="card metric-card"><span>CPU</span><strong><b id="cpuVal">—</b><small>%</small></strong></article>
           <article class="card metric-card"><span>RAM</span><strong><b id="ramVal">—</b><small>%</small></strong></article>
@@ -79,7 +78,7 @@
           <article class="card hw"><span>GPU TEMP</span><strong id="hwTemp">—</strong></article>
           <article class="card hw"><span>CPU</span><strong id="hwCpu">—</strong></article>
           <article class="card hw"><span>RAM</span><strong id="hwRam">—</strong></article>
-          <article class="card hw"><span>CONTEXT</span><strong id="hwCtx">—</strong></article>
+          <article class="card hw"><span>CONTEXTE</span><strong id="hwCtx">—</strong></article>
         </div>
       </section>
       <section id="viewErrors" class="view" data-view="errors">
@@ -90,7 +89,7 @@
         </article>
       </section>
     </main>
-    <nav class="tabs" aria-label="Navigation">
+    <nav class="tabs" aria-label="Navigation interne désactivée pour préserver le glissement iCUE" aria-hidden="true">
       <button class="tab active" type="button" data-tab="runtime">⌁ <span>Runtime</span></button>
       <button class="tab" type="button" data-tab="hardware">▣ <span>Hardware</span></button>
       <button class="tab" type="button" data-tab="errors">△ <span>Errors</span></button>

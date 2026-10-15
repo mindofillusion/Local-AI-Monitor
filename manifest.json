@@ -3,7 +3,7 @@
   "id": "fr.pierrechevalier.localaimonitor.responsive",
   "name": "Local AI Monitor Responsive",
   "description": "XENEON EDGE dashboard for a local llama.cpp runtime and PC hardware sensors.",
-  "version": "2.6.0",
+  "version": "2.9.0",
   "preview_icon": "resources/icon.svg",
   "min_app_version": "5.47",
   "min_framework_version": "1.0.1",
@@ -17,7 +17,7 @@
       "type": "dashboard_lcd"
     }
   ],
-  "interactive": true,
+  "interactive": false,
   "required_plugins": [
     "widgetbuilder.sensorsdataprovider:Sensors:1.0"
   ]

@@ -20,3 +20,45 @@
 
 /* XENEON S horizontal: 840 × 344. Keep the essential glanceable metrics only. */
 @media (min-width:700px) and (max-width:1000px) and (min-height:280px) and (max-height:450px){body{padding:6px;--gap:6px;--radius:10px}.topbar{grid-template-columns:auto auto minmax(0,1fr);gap:10px;padding:7px 10px}.brain{display:inline;font-size:20px}.brand{gap:7px}.brand strong{font-size:17px;letter-spacing:.035em}.version-badge{padding:2px 6px;font-size:10px}.status{gap:7px;font-size:16px}.status-dot{width:10px;height:10px}.runtime-meta{display:flex;justify-content:flex-end}.runtime-meta span,.runtime-meta b:first-of-type{display:none}.runtime-meta b:last-of-type{display:block;max-width:22vw;font-size:11px}.view[data-view="runtime"]{grid-template-rows:minmax(0,1fr) auto}.runtime-grid{grid-template-columns:minmax(0,1.75fr) minmax(210px,.85fr);gap:6px}.chart-card{padding:8px}.card-title{font-size:11px;padding-bottom:5px}.quick-grid{gap:6px}.quick,.metric-card,.hw{padding:7px}.quick>span,.metric-card>span,.hw>span{font-size:10px}.quick strong,.metric-card strong,.hw strong{gap:4px;margin-top:5px}.quick strong b{font-size:24px}.quick small{font-size:10px}.metrics-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.metric-card:nth-child(5),.metric-card:nth-child(6),.metric-card:nth-child(7){display:none}.metric-card strong b{font-size:20px}.metric-card small{font-size:9px}.hardware-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:6px}.section-heading{padding:7px 11px}.section-heading strong{font-size:16px}.section-heading span{font-size:10px}.hw strong{font-size:24px}.error-state>strong{font-size:26px}.error-state p{font-size:11px}.tab{padding:7px;font-size:14px}.tab span{display:inline}.chart-empty strong{font-size:24px}.chart-empty span{font-size:12px}}
+
+/* v2.7 — XENEON S 840 × 344.
+   iCUE affiche ce format à côté de widgets natifs très lisibles. La hauteur est
+   donc répartie explicitement afin que les valeurs occupent réellement la dalle,
+   sans retirer le graphe ni les quatre métriques essentielles. */
+@media (min-width:700px) and (max-width:1000px) and (min-height:280px) and (max-height:450px){
+  body{padding:4px;--gap:5px;--radius:9px}
+  .app{grid-template-rows:44px minmax(0,1fr) 38px}
+  .topbar{height:44px;grid-template-columns:auto auto minmax(0,1fr);gap:12px;padding:6px 11px}
+  .brain{font-size:23px}
+  .brand{gap:8px}.brand strong{font-size:21px;letter-spacing:.025em}
+  .version-badge{padding:2px 6px;font-size:11px}
+  .status{gap:8px;font-size:19px}.status-dot{width:11px;height:11px}
+  .runtime-meta{display:flex;justify-content:flex-end}.runtime-meta span,.runtime-meta b:first-of-type{display:none}
+  .runtime-meta b:last-of-type{display:block;max-width:24vw;font-size:13px}
+  .view[data-view="runtime"]{grid-template-rows:minmax(0,1fr) 72px;gap:5px}
+  .runtime-grid{grid-template-columns:minmax(0,1.38fr) minmax(300px,1fr);gap:5px}
+  .chart-card{padding:9px 10px}.card-title{font-size:14px;padding-bottom:5px}.card-title small{font-size:11px}
+  .quick-grid{gap:5px}.quick{padding:7px 10px}
+  .quick>span{font-size:12px}.quick strong{gap:5px;margin-top:5px}
+  .quick strong b{font-size:32px}.quick small{font-size:12px}
+  .metrics-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+  .metric-card{padding:8px 11px}.metric-card:nth-child(5),.metric-card:nth-child(6),.metric-card:nth-child(7){display:none}
+  .metric-card>span{font-size:12px}.metric-card strong{gap:4px;margin-top:6px}
+  .metric-card strong b{font-size:28px}.metric-card small{font-size:11px}
+  .tabs{height:38px}.tab{padding:6px;font-size:16px}.tab span{display:inline}
+  .section-heading{min-height:38px;padding:7px 12px}.section-heading strong{font-size:19px}.section-heading span{font-size:12px}
+  .hardware-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:5px}
+  .hw{padding:8px 11px}.hw>span{font-size:12px}.hw strong{font-size:34px;margin-top:6px}
+  .error-state>strong{font-size:38px}.error-state p{font-size:14px}
+  .chart-empty strong{font-size:28px}.chart-empty span{font-size:13px}
+}
+
+/* v2.9 — iCUE owns horizontal gestures.
+   A non-interactive dashboard widget must not present dead touch controls. */
+html,body,.app{touch-action:pan-x}
+.app{grid-template-rows:auto minmax(0,1fr)}
+.tabs{display:none!important}
+
+@media (min-width:700px) and (max-width:1000px) and (min-height:280px) and (max-height:450px){
+  .app{grid-template-rows:44px minmax(0,1fr)}
+}
