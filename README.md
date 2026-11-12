@@ -4,6 +4,8 @@ Widget responsive pour le CORSAIR XENEON EDGE. Il réunit dans une même interfa
 
 ![Aperçu du widget](preview.png)
 
+Pour suivre les tâches Codex, Work et ChatGPT sur le même écran, voir [Codex Task List](docs/codex-task-list/README.md).
+
 ## Nouveautés de la version 2.9.0
 
 - la VRAM affiche désormais la mémoire réellement allouée, en GiB, au lieu de convertir à tort le capteur iCUE « Frame Buffer Load » en quantité de mémoire ;
